@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Comparativo: IUL vs S&P 500 (2004-2023)</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+        }
+        
+        .highlight {
+            color: #4f9cf9;
+        }
+        
+        .btn {
+            background-color: #1a56db;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #1e429f;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            border: 1px solid #333;
+            padding: 8px 12px;
+            text-align: right;
+        }
+        
+        th {
+            background-color: #2d3748;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #252525;
+        }
+        
+        tr:hover {
+            background-color: #303030;
+        }
+        
+        .negative {
+            color: #f56565;
+        }
+        
+        .positive {
+            color: #48bb78;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+        }
+
+        .factor-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .factor-card h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .factor-card p {
+            flex-grow: 1;
+        }
+
+        .chart-toggle-btn {
+            background-color: #2d3748;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 0 8px 16px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .chart-toggle-btn.active {
+            background-color: #4299e1;
+        }
+
+        .chart-toggle-btn:hover {
+            background-color: #4a5568;
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d3748 100%);
+        }
+        
+        .key-fact {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        
+        .key-fact i {
+            position: absolute;
+            left: 0;
+            top: 0.25rem;
+            font-size: 1.5rem;
+            color: #4f9cf9;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(79, 156, 249, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+            z-index: -1;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+        }
+        
+        .table-highlight {
+            background-color: rgba(79, 156, 249, 0.1) !important;
+        }
+        
+        .table-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .year-marker {
+            position: absolute;
+            background-color: rgba(79, 156, 249, 0.2);
+            z-index: 0;
+        }
+        
+        .info-icon {
+            cursor: help;
+            color: #4f9cf9;
+            margin-left: 0.3rem;
+        }
+        
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .info-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #2d3748;
+            color: #e0e0e0;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+        
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .info-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
+        }
+        
+        .glow-effect {
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #4f9cf9, 0 0 10px #4f9cf9;
+            }
+            to {
+                text-shadow: 0 0 15px #4f9cf9, 0 0 20px #4f9cf9;
+            }
+        }
+        
+        .growth-arrow {
+            font-size: 1.5rem;
+            margin: 0 10px;
+        }
+        
+        .grid-highlight {
+            background-color: rgba(79, 156, 249, 0.05);
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold mb-4">Análisis Comparativo: <span class="highlight">IUL vs ETF S&P 500</span></h1>
+            <h2 class="text-2xl font-semibold mb-8">Período 2004-2023</h2>
+			<h3 class="text-1xl font-semibold mb-8">Realizado por: Ing. Norberto Urdaneta - Mayo 2025</h2>
+            <div class="w-32 h-1 bg-blue-500 mx-auto"></div>
+        </header>
+
+        <!-- Resumen Ejecutivo -->
+        <section class="mb-16">
+            <div class="card p-6 gradient-card">
+                <h2 class="text-2xl font-bold mb-4 text-blue-400">Resumen Ejecutivo</h2>
+                <p class="mb-4">Este informe detalla una simulación comparativa del crecimiento de una inversión durante un período de 20 años (2004-2023) bajo dos escenarios distintos:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="card p-4 bg-gray-800">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-shield-alt text-blue-300 mr-2 text-xl"></i>
+                            <h3 class="text-xl font-semibold text-blue-300">Escenario 1: Póliza IUL</h3>
+                        </div>
+                        <p>Valor en efectivo de una Póliza de Seguro de Vida Universal Indexado (IUL) vinculada al rendimiento del índice S&P 500 (sin dividendos).</p>
+                    </div>
+                    <div class="card p-4 bg-gray-800">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-chart-line text-blue-300 mr-2 text-xl"></i>
+                            <h3 class="text-xl font-semibold text-blue-300">Escenario 2: ETF S&P 500</h3>
+                        </div>
+                        <p>Inversión directa en un vehículo que replica el índice S&P 500 Total Return (con dividendos reinvertidos), como un ETF de bajo costo.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="card p-4 bg-gray-800 stat-card">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-money-bill-wave text-blue-300 mr-2 text-xl"></i>
+                            <h3 class="text-xl font-semibold text-blue-300">Valor Final IUL</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-blue-400">$274,892.76</p>
+                        <p class="text-lg">TIR aproximada: <span class="font-semibold">6.38%</span> anual</p>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <p>Inversión total: $100,000</p>
+                            <p>Ganancia neta: $174,892.76</p>
+                        </div>
+                    </div>
+                    <div class="card p-4 bg-gray-800 stat-card">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-chart-pie text-green-300 mr-2 text-xl"></i>
+                            <h3 class="text-xl font-semibold text-green-300">Valor Final ETF S&P 500</h3>
+                        </div>
+                        <p class="text-3xl font-bold text-green-400">$482,680.03</p>
+                        <p class="text-lg">TIR aproximada: <span class="font-semibold">10.53%</span> anual</p>
+                        <div class="mt-2 text-sm text-gray-400">
+                            <p>Inversión total: $100,000</p>
+                            <p>Ganancia neta: $382,680.03</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-blue-900 bg-opacity-20 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-lg"><span class="font-semibold">Diferencia a favor del ETF S&P 500:</span></p>
+                            <p class="text-2xl font-bold text-green-400">$207,787.27</p>
+                            <p class="text-sm text-gray-300">(75.6% más que la IUL)</p>
+                        </div>
+                        <div class="text-center hidden md:block">
+                            <i class="fas fa-arrow-right text-green-400 text-4xl glow-effect"></i>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-semibold">Inversión ETF vs. IUL</p>
+                            <p class="text-2xl font-bold">175.6%</p>
+                            <p class="text-sm text-gray-300">del valor IUL</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gráfico Principal -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Evolución Comparativa del Valor (2004-2023)</h2>
+                <div class="flex flex-wrap items-center justify-between mb-4">
+                    <div class="chart-buttons">
+                        <button class="chart-toggle-btn active" id="btnLinear">
+                            <i class="fas fa-chart-line mr-1"></i> Escala Lineal
+                        </button>
+                        <button class="chart-toggle-btn" id="btnLog">
+                            <i class="fas fa-chart-area mr-1"></i> Escala Logarítmica
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap mt-2 md:mt-0">
+                        <div class="mr-4 flex items-center">
+                            <span class="inline-block w-3 h-3 bg-blue-400 rounded-full mr-1"></span>
+                            <span>IUL</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 bg-green-400 rounded-full mr-1"></span>
+                            <span>ETF S&P 500</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="mt-4 text-sm text-gray-400">
+                    <p><i class="fas fa-info-circle mr-1"></i> Los primeros 10 años (2004-2013) incluyen aportaciones anuales de $10,000. Los últimos 10 años (2014-2023) no tienen aportaciones adicionales.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Factores Críticos -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Factores Críticos que Explican la Diferencia</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card p-4 bg-gray-800 factor-card">
+                        <div class="flex items-center mb-3">
+                            <div class="rounded-full bg-red-500 bg-opacity-20 p-2 mr-3">
+                                <i class="fas fa-dollar-sign text-red-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-blue-300">1. Gastos de la Póliza IUL</h3>
+                        </div>
+                        <p>El impacto acumulativo de las cargas sobre primas, los gastos administrativos, los cargos por unidad y el costo del seguro (COI) mermó significativamente el crecimiento del valor en efectivo.</p>
+                        <div class="mt-auto pt-3">
+                            <p class="text-red-400 font-semibold">Impacto estimado: ~$18,738</p>
+                        </div>
+                    </div>
+                    <div class="card p-4 bg-gray-800 factor-card">
+                        <div class="flex items-center mb-3">
+                            <div class="rounded-full bg-yellow-500 bg-opacity-20 p-2 mr-3">
+                                <i class="fas fa-coins text-yellow-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-blue-300">2. Exclusión de Dividendos</h3>
+                        </div>
+                        <p>La no acreditación de los dividendos del S&P 500 al valor en efectivo de la IUL representó una pérdida de oportunidad de rendimiento significativa en comparación con la inversión directa, donde los dividendos se reinvirtieron y compusieron a lo largo del tiempo.</p>
+                        <div class="mt-auto pt-3">
+                            <p class="text-yellow-400 font-semibold">Factor crítico de rendimiento a largo plazo</p>
+                        </div>
+                    </div>
+                    <div class="card p-4 bg-gray-800 factor-card">
+                        <div class="flex items-center mb-3">
+                            <div class="rounded-full bg-blue-500 bg-opacity-20 p-2 mr-3">
+                                <i class="fas fa-lock text-blue-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-blue-300">3. Topes de Rentabilidad (Caps)</h3>
+                        </div>
+                        <p>Si bien el suelo del 0% ofreció protección en años de mercado bajista, los topes limitaron la participación en las ganancias durante numerosos años de fuerte crecimiento del mercado.</p>
+                        <div class="mt-auto pt-3">
+                            <p class="text-blue-400 font-semibold">Limitación en 10 de los 20 años analizados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gráfico de Rendimientos vs Caps -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Impacto de los Topes (Caps) y Suelo (Floor)</h2>
+                <div class="chart-container">
+                    <canvas id="capsChart"></canvas>
+                </div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-shield-alt text-blue-400 text-xl mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Protección del Suelo (0%)</h3>
+                                <p>El suelo del 0% se activó en <strong>4 años</strong> del período (2008, 2015, 2018, 2022), protegiendo contra pérdidas durante mercados bajistas. El valor no disminuyó incluso cuando el S&P 500 tuvo rendimientos negativos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-lock text-red-400 text-xl mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Limitación de los Topes</h3>
+                                <p>Los topes de rendimiento limitaron las ganancias en <strong>10 años</strong> del período, reduciendo significativamente el potencial de crecimiento en años de alto rendimiento del mercado (2006, 2009, 2010, 2012, 2013, 2017, 2019, 2020, 2021, 2023).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gráfico de Gastos -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Comparativa de Gastos Anuales</h2>
+                <div class="chart-container">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-money-bill-wave text-red-400 text-xl mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Gastos IUL</h3>
+                                <p>Los gastos de la póliza IUL incluyen cargas sobre primas, gastos administrativos, cargos por unidad y costo del seguro (COI), sumando aproximadamente $18,738 durante los 20 años del estudio.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-chart-pie text-green-400 text-xl mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Gastos ETF</h3>
+                                <p>Los gastos del ETF son significativamente menores (ratio de gastos entre 0.03% y 0.10% anual), totalizando aproximadamente $2,017 durante los 20 años, lo que permite que una mayor parte del rendimiento se acumule en el valor de la inversión.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabla de Datos -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Datos Anuales Completos (2004-2023)</h2>
+                <div class="table-filters">
+                    <button class="chart-toggle-btn active" id="btnShowAll">Todos los años</button>
+                    <button class="chart-toggle-btn" id="btnShowGrowthYears">Años de crecimiento</button>
+                    <button class="chart-toggle-btn" id="btnShowDeclineYears">Años de caída</button>
+                </div>
+                <div class="table-container">
+                    <table id="dataTable" class="text-sm">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>S&P 500 (Precio)</th>
+                                <th>Cap IUL</th>
+                                <th>Tasa Acreditada IUL</th>
+                                <th>Valor Final IUL ($)</th>
+                                <th>S&P 500 (Total)</th>
+                                <th>Valor Final ETF ($)</th>
+                                <th>Diferencia ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Datos serán insertados por JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-3 bg-blue-900 bg-opacity-10 rounded-lg text-sm">
+                    <p><i class="fas fa-info-circle text-blue-400 mr-1"></i> <strong>Nota:</strong> Los primeros 10 años (2004-2013) incluyen aportaciones anuales de $10,000. El valor total invertido en ambos escenarios es de $100,000.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusiones -->
+        <section class="mb-16">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-blue-400">Conclusiones</h2>
+                <div class="mb-6 gradient-card p-5 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-chart-line text-green-400 text-2xl mr-3"></i>
+                        <h3 class="text-xl font-semibold">Rendimiento Superior de la Inversión Directa</h3>
+                    </div>
+                    <p class="mb-4">La inversión directa en el S&P 500 superó al valor en efectivo de la IUL en <span class="text-green-400 font-semibold">$207,787.27</span> al final del período de 20 años. Esto representa un 75.6% más de crecimiento de la inversión directa frente a la IUL.</p>
+                    <p>La combinación de los factores analizados creó un entorno en el que el valor en efectivo de la IUL tuvo que superar una barrera de costos y limitaciones de rendimiento mucho más alta que la inversión directa de bajo costo.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-dollar-sign text-xl text-blue-400 mr-2"></i>
+                            <h3 class="text-lg font-semibold">Mayor Crecimiento de Capital</h3>
+                        </div>
+                        <p>El ETF del S&P 500 generó una ganancia neta de $382,680.03 vs. $174,892.76 de la IUL, lo que significa un crecimiento 2.19 veces mayor.</p>
+                    </div>
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-percentage text-xl text-blue-400 mr-2"></i>
+                            <h3 class="text-lg font-semibold">Mayor TIR Anual</h3>
+                        </div>
+                        <p>La Tasa Interna de Retorno del ETF fue de 10.53% anual, superando el 6.38% de la IUL, una diferencia de 4.15 puntos porcentuales anuales.</p>
+                    </div>
+                    <div class="p-4 bg-gray-800 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-chart-bar text-xl text-blue-400 mr-2"></i>
+                            <h3 class="text-lg font-semibold">Mayor Eficiencia de Gastos</h3>
+                        </div>
+                        <p>Los gastos del ETF representaron aproximadamente el 0.06% anual del valor, mientras que los de la IUL representaron cerca del 0.43% anual más el costo del seguro.</p>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-gray-800 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-circle text-yellow-400 text-xl mt-1 mr-3"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-2">Consideraciones importantes</h3>
+                            <p>Este análisis se centró estrictamente en la comparación del crecimiento de la inversión y excluyó deliberadamente otros aspectos de una póliza IUL, como el beneficio por fallecimiento, las opciones de préstamo de la póliza y las implicaciones fiscales.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-500 text-sm pb-8">
+            <p>Análisis Comparativo basado en datos históricos 2004-2023 | Simulación IUL vs S&P 500</p>
+        </footer>
+    </div>
+
+    <script>
+        // Datos del estudio
+        const annualData = [
+            {year: 2004, spPrice: 9.00, capIUL: 12.00, rateIUL: 9.00, valueIUL: 9425.50, spTotal: 10.88, valueETF: 10082.56},
+            {year: 2005, spPrice: 4.70, capIUL: 12.00, rateIUL: 4.70, valueIUL: 18454.04, spTotal: 4.91, valueETF: 21040.64},
+            {year: 2006, spPrice: 13.50, capIUL: 12.50, rateIUL: 12.50, valueIUL: 31025.79, spTotal: 15.79, valueETF: 35923.99},
+            {year: 2007, spPrice: 3.50, capIUL: 12.50, rateIUL: 3.50, valueIUL: 41524.94, spTotal: 5.49, valueETF: 48421.50},
+            {year: 2008, spPrice: -38.50, capIUL: 12.50, rateIUL: 0.00, valueIUL: 50219.07, spTotal: -37.00, valueETF: 30489.29},
+            {year: 2009, spPrice: 23.50, capIUL: 13.00, rateIUL: 13.00, valueIUL: 66973.75, spTotal: 26.46, valueETF: 51187.15},
+            {year: 2010, spPrice: 12.80, capIUL: 13.50, rateIUL: 12.80, valueIUL: 85757.18, spTotal: 15.06, valueETF: 70368.90},
+            {year: 2011, spPrice: 1.50, capIUL: 14.00, rateIUL: 1.50, valueIUL: 95780.97, spTotal: 2.11, valueETF: 82864.05},
+            {year: 2012, spPrice: 13.40, capIUL: 14.00, rateIUL: 13.40, valueIUL: 118780.80, spTotal: 16.00, valueETF: 107668.44},
+            {year: 2013, spPrice: 29.60, capIUL: 13.00, rateIUL: 13.00, valueIUL: 143946.22, spTotal: 32.39, valueETF: 155716.91},
+            {year: 2014, spPrice: 11.40, capIUL: 12.50, rateIUL: 11.40, valueIUL: 159992.78, spTotal: 13.69, valueETF: 176946.24},
+            {year: 2015, spPrice: -0.73, capIUL: 12.00, rateIUL: 0.00, valueIUL: 159614.12, spTotal: 1.38, valueETF: 179298.41},
+            {year: 2016, spPrice: 9.54, capIUL: 11.50, rateIUL: 9.54, valueIUL: 174432.20, spTotal: 11.96, valueETF: 200642.13},
+            {year: 2017, spPrice: 19.42, capIUL: 11.00, rateIUL: 11.00, valueIUL: 193173.92, spTotal: 21.83, valueETF: 244320.09},
+            {year: 2018, spPrice: -6.24, capIUL: 10.50, rateIUL: 0.00, valueIUL: 192695.58, spTotal: -4.38, valueETF: 233503.86},
+            {year: 2019, spPrice: 28.88, capIUL: 10.00, rateIUL: 10.00, valueIUL: 211437.68, spTotal: 31.49, valueETF: 306880.71},
+            {year: 2020, spPrice: 16.26, capIUL: 10.00, rateIUL: 10.00, valueIUL: 232011.58, spTotal: 18.40, valueETF: 363165.09},
+            {year: 2021, spPrice: 26.89, capIUL: 9.50, rateIUL: 9.50, valueIUL: 253447.60, spTotal: 28.71, valueETF: 467194.79},
+            {year: 2022, spPrice: -19.44, capIUL: 9.00, rateIUL: 0.00, valueIUL: 252814.81, spTotal: -18.11, valueETF: 382397.91},
+            {year: 2023, spPrice: 24.23, capIUL: 9.00, rateIUL: 9.00, valueIUL: 274892.76, spTotal: 26.29, valueETF: 482680.03}
+        ];
+
+        // Datos de gastos anuales
+        const expensesData = [
+            {year: 2004, expensesIUL: 602.50, expensesETF: 5.44},
+            {year: 2005, expensesIUL: 628.13, expensesETF: 10.53},
+            {year: 2006, expensesIUL: 658.33, expensesETF: 17.97},
+            {year: 2007, expensesIUL: 684.08, expensesETF: 24.22},
+            {year: 2008, expensesIUL: 705.87, expensesETF: 15.25},
+            {year: 2009, expensesIUL: 743.40, expensesETF: 48.05},
+            {year: 2010, expensesIUL: 776.08, expensesETF: 53.86},
+            {year: 2011, expensesIUL: 803.57, expensesETF: 77.90},
+            {year: 2012, expensesIUL: 847.46, expensesETF: 88.52},
+            {year: 2013, expensesIUL: 898.08, expensesETF: 141.45},
+            {year: 2014, expensesIUL: 363.31, expensesETF: 153.52},
+            {year: 2015, expensesIUL: 378.66, expensesETF: 181.67},
+            {year: 2016, expensesIUL: 409.11, expensesETF: 122.22},
+            {year: 2017, expensesIUL: 445.82, expensesETF: 116.81},
+            {year: 2018, expensesIUL: 478.34, expensesETF: 153.52},
+            {year: 2019, expensesIUL: 527.46, expensesETF: 241.46},
+            {year: 2020, expensesIUL: 569.87, expensesETF: 233.71},
+            {year: 2021, expensesIUL: 605.08, expensesETF: 191.29},
+            {year: 2022, expensesIUL: 632.79, expensesETF: 284.88},
+            {year: 2023, expensesIUL: 675.38, expensesETF: 241.46}
+        ];
+
+        // Poblar la tabla con datos
+        const tableBody = document.getElementById('tableBody');
+        
+        function populateTable(filter = 'all') {
+            // Limpiar tabla
+            tableBody.innerHTML = '';
+            
+            annualData.forEach(item => {
+                // Aplicar filtros
+                if (filter === 'growth' && item.spPrice <= 0) return;
+                if (filter === 'decline' && item.spPrice > 0) return;
+                
+                const row = document.createElement('tr');
+                
+                // Calcular la diferencia
+                const difference = item.valueETF - item.valueIUL;
+                
+                // Verificar si el rendimiento está limitado por el cap
+                const isLimited = item.spPrice > item.capIUL;
+                
+                // Verificar si se activó el suelo
+                const isFloor = item.spPrice < 0;
+                
+                // Añadir celdas a la fila
+                row.innerHTML = `
+                    <td>${item.year}</td>
+                    <td class="${item.spPrice >= 0 ? 'positive' : 'negative'}">${item.spPrice.toFixed(2)}%</td>
+                    <td>${item.capIUL.toFixed(2)}%</td>
+                    <td class="${isLimited ? 'text-yellow-400' : (isFloor ? 'text-blue-400' : '')}">${item.rateIUL.toFixed(2)}%${isLimited ? ' <i class="fas fa-lock text-xs"></i>' : (isFloor ? ' <i class="fas fa-shield-alt text-xs"></i>' : '')}</td>
+                    <td>${item.valueIUL.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="${item.spTotal >= 0 ? 'positive' : 'negative'}">${item.spTotal.toFixed(2)}%</td>
+                    <td>${item.valueETF.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="${difference >= 0 ? 'positive' : 'negative'}">${difference.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                `;
+                
+                // Marcar años con inversión
+                if (item.year <= 2013) {
+                    row.classList.add('table-highlight');
+                }
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Inicialmente poblar la tabla completa
+        populateTable();
+        
+        // Añadir eventos a los botones de filtro
+        document.getElementById('btnShowAll').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btnShowGrowthYears').classList.remove('active');
+            document.getElementById('btnShowDeclineYears').classList.remove('active');
+            populateTable('all');
+        });
+        
+        document.getElementById('btnShowGrowthYears').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btnShowAll').classList.remove('active');
+            document.getElementById('btnShowDeclineYears').classList.remove('active');
+            populateTable('growth');
+        });
+        
+        document.getElementById('btnShowDeclineYears').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btnShowAll').classList.remove('active');
+            document.getElementById('btnShowGrowthYears').classList.remove('active');
+            populateTable('decline');
+        });
+
+        // Configurar gráfico principal
+        const years = annualData.map(item => item.year);
+        const valuesIUL = annualData.map(item => item.valueIUL);
+        const valuesETF = annualData.map(item => item.valueETF);
+
+        // Identificar punto donde se separan las inversiones
+        const noMoreInvestmentIndex = years.indexOf(2014);
+        
+        const mainChartCtx = document.getElementById('mainChart').getContext('2d');
+        const mainChart = new Chart(mainChartCtx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Valor en Efectivo IUL',
+                        data: valuesIUL,
+                        borderColor: '#4f9cf9',
+                        backgroundColor: 'rgba(79, 156, 249, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3,
+                        fill: true,
+                        pointBackgroundColor: (context) => {
+                            const index = context.dataIndex;
+                            if (index === valuesIUL.length - 1) {
+                                return '#4f9cf9';
+                            }
+                            return index < noMoreInvestmentIndex ? 'rgba(79, 156, 249, 0.8)' : 'rgba(79, 156, 249, 0.5)';
+                        },
+                        pointRadius: (context) => {
+                            const index = context.dataIndex;
+                            return index === valuesIUL.length - 1 ? 6 : 4;
+                        },
+                        pointBorderColor: '#4f9cf9'
+                    },
+                    {
+                        label: 'Valor ETF S&P 500',
+                        data: valuesETF,
+                        borderColor: '#48bb78',
+                        backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3,
+                        fill: true,
+                        pointBackgroundColor: (context) => {
+                            const index = context.dataIndex;
+                            if (index === valuesETF.length - 1) {
+                                return '#48bb78';
+                            }
+                            return index < noMoreInvestmentIndex ? 'rgba(72, 187, 120, 0.8)' : 'rgba(72, 187, 120, 0.5)';
+                        },
+                        pointRadius: (context) => {
+                            const index = context.dataIndex;
+                            return index === valuesETF.length - 1 ? 6 : 4;
+                        },
+                        pointBorderColor: '#48bb78'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0',
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e0e0e0',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                }
+                                return label;
+                            },
+                            afterBody: function(tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const year = years[index];
+                                
+                                if (year <= 2013) {
+                                    return ['Año con inversión de $10,000'];
+                                } else {
+                                    return ['Año sin nuevas inversiones'];
+                                }
+                            }
+                        }
+                    }
+                },
+                // Agregar una línea vertical para marcar el fin de las inversiones
+                onRender: function(chart) {
+                    if (!chart.config.options.annotation) {
+                        const noMoreInvestmentX = chart.scales.x.getPixelForValue(2013);
+                        const ctx = chart.ctx;
+                        
+                        // Guardar estado del contexto
+                        ctx.save();
+                        
+                        // Dibujar línea vertical
+                        ctx.beginPath();
+                        ctx.moveTo(noMoreInvestmentX, chart.chartArea.top);
+                        ctx.lineTo(noMoreInvestmentX, chart.chartArea.bottom);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.stroke();
+                        
+                        // Dibujar texto
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Fin de inversiones', noMoreInvestmentX, chart.chartArea.top - 10);
+                        
+                        // Restaurar estado
+                        ctx.restore();
+                    }
+                }
+            }
+        });
+
+        // Gráfico de rendimientos vs caps
+        const capsChartCtx = document.getElementById('capsChart').getContext('2d');
+        const capsChart = new Chart(capsChartCtx, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'S&P 500 Price Return',
+                        data: annualData.map(item => item.spPrice),
+                        backgroundColor: function(context) {
+                            const index = context.dataIndex;
+                            const value = context.dataset.data[index];
+                            return value < 0 ? 'rgba(245, 101, 101, 0.7)' : 'rgba(72, 187, 120, 0.7)';
+                        },
+                        borderColor: function(context) {
+                            const index = context.dataIndex;
+                            const value = context.dataset.data[index];
+                            return value < 0 ? '#f56565' : '#48bb78';
+                        },
+                        borderWidth: 1,
+                        order: 1
+                    },
+                    {
+                        label: 'Tasa Acreditada IUL',
+                        data: annualData.map(item => item.rateIUL),
+                        backgroundColor: 'rgba(79, 156, 249, 0.7)',
+                        borderColor: '#4f9cf9',
+                        borderWidth: 1,
+                        order: 2
+                    },
+                    {
+                        label: 'Cap IUL',
+                        data: annualData.map(item => item.capIUL),
+                        type: 'line',
+                        fill: false,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        order: 0
+                    },
+                    {
+                        label: 'Suelo (0%)',
+                        data: Array(years.length).fill(0),
+                        type: 'line',
+                        fill: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                        borderWidth: 2,
+                        borderDash: [3, 3],
+                        pointRadius: 0,
+                        order: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e0e0e0'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toFixed(2) + '%';
+                                }
+                                return label;
+                            },
+                            afterBody: function(tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const spReturn = annualData[index].spPrice;
+                                const capIUL = annualData[index].capIUL;
+                                const rateIUL = annualData[index].rateIUL;
+                                
+                                let notes = [];
+                                
+                                if (spReturn > capIUL) {
+                                    notes.push(`Rendimiento limitado por el cap (${capIUL}%)`);
+                                }
+                                
+                                if (spReturn < 0 && rateIUL === 0) {
+                                    notes.push(`Activación del suelo (0%)`);
+                                }
+                                
+                                return notes;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de gastos
+        const expensesChartCtx = document.getElementById('expensesChart').getContext('2d');
+        const expensesChart = new Chart(expensesChartCtx, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Gastos IUL ($)',
+                        data: expensesData.map(item => item.expensesIUL),
+                        backgroundColor: 'rgba(245, 101, 101, 0.7)',
+                        borderColor: '#f56565',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Gastos ETF ($)',
+                        data: expensesData.map(item => item.expensesETF),
+                        backgroundColor: 'rgba(72, 187, 120, 0.7)',
+                        borderColor: '#48bb78',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0',
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e0e0e0'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e0e0e0'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += '$' + context.parsed.y.toFixed(2);
+                                }
+                                return label;
+                            },
+                            afterBody: function(tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const year = years[index];
+                                const iIUL = tooltipItems.findIndex(item => item.dataset.label.includes('IUL'));
+                                const iETF = tooltipItems.findIndex(item => item.dataset.label.includes('ETF'));
+                                
+                                if (iIUL !== -1 && iETF !== -1) {
+                                    const expenseIUL = tooltipItems[iIUL].parsed.y;
+                                    const expenseETF = tooltipItems[iETF].parsed.y;
+                                    const difference = expenseIUL - expenseETF;
+                                    const times = (expenseIUL / expenseETF).toFixed(1);
+                                    
+                                    return [
+                                        `Diferencia: $${difference.toFixed(2)}`,
+                                        `IUL cuesta ${times}x más que ETF`
+                                    ];
+                                }
+                                
+                                return [];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Alternar entre escala lineal y logarítmica
+        document.getElementById('btnLinear').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btnLog').classList.remove('active');
+            mainChart.options.scales.y.type = 'linear';
+            mainChart.update();
+        });
+
+        document.getElementById('btnLog').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btnLinear').classList.remove('active');
+            mainChart.options.scales.y.type = 'logarithmic';
+            mainChart.update();
+        });
+    </script>
+</body>
+</html>
